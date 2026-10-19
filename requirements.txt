@@ -1,0 +1,28 @@
+# InterceptorV2 — Full Workspace Requirements
+# Python 3.11+
+
+# ── Core & Shared Contracts ───────────────────
+pymavlink>=2.4.41
+msgpack>=1.0.7
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+PyYAML>=6.0.1
+numpy>=1.26.0
+
+# ── Air-Unit Stack (Detection, Tracking, Servoing)
+onnxruntime>=1.16.0
+scipy>=1.11.0
+
+# ── Ground Station UI (Desktop HUD) ───────────
+PySide6>=6.6.0
+opencv-python>=4.8.0
+
+# ── Development & Testing ─────────────────────
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-timeout>=2.2.0
+hypothesis>=6.92.0
+ruff>=0.4.0
+mypy>=1.8.0
+pre-commit>=3.6.0
+types-PyYAML>=6.0.12

@@ -1,0 +1,13 @@
+# InterceptorV2 — Ground Station
+# For Windows / Linux / macOS Laptop or Tablet
+
+pymavlink>=2.4.41
+msgpack>=1.0.7
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+PyYAML>=6.0.1
+numpy>=1.26.0
+
+# Desktop HUD Application
+PySide6>=6.6.0
+opencv-python>=4.8.0
