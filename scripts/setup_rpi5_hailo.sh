@@ -20,7 +20,7 @@ if [[ -f "$CONFIG_TXT" ]]; then
     fi
 fi
 
-# 3. Install system dependencies
+# 3. Install system dependencies & official Raspberry Pi AI HAT / Hailo suite
 echo "Updating apt and installing required system packages..."
 sudo apt-get update
 sudo apt-get install -y \
@@ -35,26 +35,45 @@ sudo apt-get install -y \
     libgstreamer1.0-dev \
     v4l-utils
 
-# 4. Check for HailoRT installation
+# Install official Raspberry Pi OS Hailo package if available
+echo "Checking for official Raspberry Pi Hailo suite (hailo-all)..."
+if sudo apt-get install -y hailo-all; then
+    echo "hailo-all installed successfully (kernel module, firmware, and HailoRT)."
+else
+    echo "hailo-all apt package not found or failed; continuing with manual check..."
+fi
+
+# 4. User permissions for UART & Camera
+echo "Ensuring user is in dialout and video groups for serial FC link and camera..."
+sudo usermod -aG dialout,video,i2c,gpio "$USER" || true
+
+# 5. Check for HailoRT installation
 if command -v hailortcli &> /dev/null; then
     echo "HailoRT CLI found:"
     hailortcli --version || true
     echo "Scanning PCIe devices:"
     hailortcli scan || true
 else
-    echo "Note: HailoRT package not installed. Download and install HailoRT deb from Hailo Developer Zone."
+    echo "Warning: hailortcli not found. Ensure PCIe is connected and 'sudo apt install hailo-all' was executed."
 fi
 
-# 5. Virtual environment setup
+# 6. Virtual environment setup (CRITICAL: --system-site-packages to use picamera2 & hailo_platform)
 VENV_DIR="$HOME/interceptor-venv"
 if [[ ! -d "$VENV_DIR" ]]; then
-    echo "Creating virtual environment at $VENV_DIR..."
-    python3 -m venv "$VENV_DIR"
+    echo "Creating virtual environment at $VENV_DIR with system-site-packages..."
+    python3 -m venv --system-site-packages "$VENV_DIR"
+else
+    echo "Existing venv found. Ensuring system-site-packages are enabled..."
+    python3 -m venv --system-site-packages --upgrade "$VENV_DIR"
 fi
 
 echo "Activating virtual environment and installing python dependencies..."
 source "$VENV_DIR/bin/activate"
 pip install --upgrade pip setuptools wheel
-pip install -e ".[air]"
+pip install -r requirements-air.txt
 
-echo "Setup completed successfully."
+echo "=============================================="
+echo "Setup completed successfully!"
+echo "NOTE: If PCIe was newly enabled, REBOOT your Pi 5:"
+echo "      sudo reboot"
+echo "=============================================="

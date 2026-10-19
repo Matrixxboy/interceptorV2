@@ -210,28 +210,82 @@ sudo bash scripts/setup_openipc_link.sh eth0 192.168.1.20 192.168.1.10 24
 
 ## 5. Software Installation & Setup
 
-### On the Companion Computer (Air-Unit)
+### On the Companion Computer (Raspberry Pi 5)
 
-1. **Clone and install dependencies:**
+#### Step 1: Update OS & Install Raspberry Pi AI Suite
+On Raspberry Pi OS Bookworm 64-bit, the Hailo kernel drivers, firmware, and HailoRT Python bindings are available via official apt packages:
+```bash
+sudo apt update && sudo apt full-upgrade -y
+sudo apt install -y hailo-all git python3-pip python3-venv v4l-utils
+```
+
+#### Step 2: Configure PCIe Gen 3 & Camera
+Verify your `/boot/firmware/config.txt` contains:
+```ini
+# Enable PCIe Gen 3 for Hailo AI HAT
+dtparam=pciex1
+dtparam=pciex1_gen=3
+
+# Enable Camera Auto-Detect
+camera_auto_detect=1
+
+# Enable UART on GPIO 14/15 for Flight Controller
+enable_uart=1
+dtoverlay=uart0
+```
+Then reboot if you edited config.txt:
+```bash
+sudo reboot
+```
+
+#### Step 3: Clone Repository & Setup Virtual Environment
+> [!IMPORTANT]
+> Because Raspberry Pi OS installs `python3-hailort` and `picamera2` as system-level Debian packages, your Python virtual environment **MUST** be created with `--system-site-packages`.
+
+```bash
+git clone https://github.com/Matrixxboy/interceptorV2.git
+cd interceptorV2
+
+# Create venv with system site packages enabled
+python3 -m venv --system-site-packages ~/interceptor-venv
+source ~/interceptor-venv/bin/activate
+
+# Install requirements
+pip install --upgrade pip setuptools wheel
+pip install -r requirements-air.txt
+```
+
+#### Step 4: Hardware Verification Checklist
+Run these 3 checks to verify hardware connectivity:
+1. **Hailo NPU Check**:
    ```bash
-   git clone https://github.com/your-org/fpv-autonomous-tracker.git
-   cd fpv-autonomous-tracker
+   hailortcli scan
    ```
-2. **Run automatic hardware setup (for RPi5 + Hailo-8):**
+   *Expected output: `[HailoRT] [I] Device was found: ...`*
+2. **Camera Check**:
    ```bash
-   bash scripts/setup_rpi5_hailo.sh
+   rpicam-hello --list-cameras
    ```
-3. **Verify installation:**
+   *Expected output: Lists Camera Module 3 or IMX708 on CAM0 / CAM1.*
+3. **Flight Controller UART Check**:
    ```bash
-   source ~/interceptor-venv/bin/activate
-   pytest
+   ls -l /dev/ttyAMA0
    ```
-4. **Enable auto-start on boot (optional systemd service):**
-   ```bash
-   sudo cp scripts/services/drone-tracker.service /etc/systemd/system/
-   sudo systemctl daemon-reload
-   sudo systemctl enable drone-tracker.service
-   ```
+   *Ensure your user is in the dialout group (`sudo usermod -aG dialout,video $USER`).*
+
+#### Step 5: Launch Air-Unit
+```bash
+source ~/interceptor-venv/bin/activate
+python air-unit/main.py
+```
+
+#### Step 6: Enable Auto-Start on Drone Boot (Optional Service)
+```bash
+sudo cp scripts/services/drone-tracker.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable drone-tracker.service
+sudo systemctl start drone-tracker.service
+```
 
 ---
 
