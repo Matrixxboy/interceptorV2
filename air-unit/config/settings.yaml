@@ -1,0 +1,45 @@
+# Air-unit configuration (§9)
+# Defaults are conservative starting points — tune in SITL then in the field.
+# Hard caps live in shared/constants.py (S8).
+
+camera:
+  width: 1280
+  height: 720
+  fps: 30
+  source: picamera2   # picamera2 | v4l2 | file
+
+fc:
+  port: /dev/ttyAMA0
+  baud: 921600
+  expected_mode: GUIDED
+
+vision:
+  model: models/yolov8n.hef
+  conf: 0.35
+  iou: 0.5
+  classes: [0]   # 0 = person (COCO)
+
+control:
+  hz: 30
+  max_vx: 3.0
+  max_vy: 1.5
+  max_vz: 1.5
+  max_yaw_rate: 1.2
+  follow_distance_m: 6.0
+
+pid:
+  yaw: {kp: 1.0, ki: 0.0, kd: 0.05}
+  alt:  {kp: 0.8, ki: 0.0, kd: 0.03}
+  fwd:  {kp: 0.6, ki: 0.0, kd: 0.05}
+
+safety:
+  target_lost_timeout_s: 1.0
+  target_lost_rtl_s: 5.0
+  gcs_timeout_s: 2.0
+  gcs_rtl_s: 10.0
+
+network:
+  gcs_host: 192.168.1.10
+  telemetry_port: 5005
+  command_port: 5006
+  video_port: 5600

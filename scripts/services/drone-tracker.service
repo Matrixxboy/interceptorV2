@@ -1,0 +1,16 @@
+[Unit]
+Description=FPV Autonomous Tracker Air-Unit Service
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/fpv-autonomous-tracker
+ExecStart=/home/pi/interceptor-venv/bin/python air-unit/main.py --config air-unit/config/settings.yaml
+Restart=on-failure
+RestartSec=3
+KillMode=mixed
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

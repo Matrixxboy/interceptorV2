@@ -1,0 +1,136 @@
+[build-system]
+requires = ["setuptools>=68.0", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fpv-autonomous-tracker"
+version = "0.1.0"
+description = "Autonomous FPV drone target tracker — air-unit + ground-station"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = [
+    "pymavlink>=2.4.41",
+    "msgpack>=1.0.7",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "PyYAML>=6.0.1",
+    "numpy>=1.26.0",
+]
+
+[project.optional-dependencies]
+air = [
+    "onnxruntime>=1.16.0",
+    "opencv-python-headless>=4.8.0",
+    "lap>=0.4.0",
+    "scipy>=1.11.0",
+]
+gcs = [
+    "PySide6>=6.6.0",
+    "opencv-python>=4.8.0",
+]
+dev = [
+    "ruff>=0.4.0",
+    "mypy>=1.8.0",
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-timeout>=2.2.0",
+    "pre-commit>=3.6.0",
+    "hypothesis>=6.92.0",
+    "types-PyYAML>=6.0.12",
+]
+
+[tool.setuptools]
+package-dir = {"air_unit" = "air-unit", "ground_station" = "ground-station", "shared" = "shared"}
+packages = [
+    "air_unit",
+    "air_unit.comms",
+    "air_unit.config",
+    "air_unit.control",
+    "air_unit.core",
+    "air_unit.hardware",
+    "air_unit.sim",
+    "air_unit.vision",
+    "ground_station",
+    "ground_station.backend",
+    "ground_station.ui",
+    "shared",
+    "shared.messages",
+]
+
+
+
+# ──────────────────────────────────────────────
+# Ruff
+# ──────────────────────────────────────────────
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["shared", "air-unit", "ground-station"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",      # pycodestyle
+    "F",            # pyflakes
+    "I",            # isort
+    "N",            # pep8-naming
+    "UP",           # pyupgrade
+    "B",            # flake8-bugbear
+    "SIM",          # flake8-simplify
+    "RUF",          # ruff-specific
+]
+ignore = [
+    "E501",         # line length handled by formatter
+    "N999",         # directory names air-unit, ground-station have hyphens
+    "N802",         # Qt overrides like mousePressEvent
+    "RUF001",       # ambiguous unicode in string
+    "RUF002",       # ambiguous unicode in docstring
+    "RUF003",       # ambiguous unicode in comment
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["shared"]
+
+# ──────────────────────────────────────────────
+# Mypy — strict on air-unit + shared
+# ──────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pymavlink.*",
+    "hailo_platform.*",
+    "picamera2.*",
+    "cv2.*",
+    "lap.*",
+    "msgpack.*",
+    "onnxruntime.*",
+]
+ignore_missing_imports = true
+
+# ──────────────────────────────────────────────
+# Pytest
+# ──────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = [
+    "shared/tests",
+    "air-unit/tests",
+    "ground-station/tests",
+]
+markers = [
+    "hw: requires physical hardware (deselect with '-m not hw')",
+    "sitl: requires ArduPilot SITL (deselect with '-m not sitl')",
+    "slow: long-running tests",
+]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--timeout=30",
+    "--import-mode=importlib",
+    "-m", "not hw and not sitl",
+]

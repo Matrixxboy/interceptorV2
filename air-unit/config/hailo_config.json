@@ -1,0 +1,12 @@
+{
+    "comment": "Hailo NPU configuration — quantized model parameters",
+    "device_id": null,
+    "batch_size": 1,
+    "input_format": "NHWC",
+    "input_dtype": "uint8",
+    "nms_score_threshold": 0.35,
+    "nms_iou_threshold": 0.5,
+    "max_detections": 100,
+    "letterbox": true,
+    "target_size": [640, 640]
+}
